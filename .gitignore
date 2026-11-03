@@ -1,0 +1,43 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+override.tf
+override.tf.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Airflow
+logs/
+airflow.db/
+airflow.cfg
+
+# Docker
+.docker/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Temporary files
+*.log
+tmp/
