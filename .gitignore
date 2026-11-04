@@ -41,3 +41,6 @@ airflow.cfg
 # Temporary files
 *.log
 tmp/
+
+# Floci persistent data
+data/

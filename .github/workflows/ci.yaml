@@ -46,11 +46,17 @@ jobs:
           fi
 
           while IFS= read -r commit; do
-            message=$(git log -1 --format=%s "$commit")
+            parent_count=$(git rev-list --parents -n 1 "$commit" | wc -w | tr -d ' ')
 
+            if [[ "$parent_count" -eq 1 ]]; then
+              echo "Skipping root commit: $(git log -1 --format=%s "$commit")"
+              continue
+            fi
+
+            message=$(git log -1 --format=%s "$commit")
             echo "Checking: $message"
 
             scripts/validate-commit-message.sh "$message" || exit 1
           done <<< "$commits"
 
-          echo "All commit messages passed validation."
+          echo "All applicable commit messages passed validation."
