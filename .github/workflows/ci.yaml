@@ -1,0 +1,56 @@
+
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  commit-message-validation:
+    name: Validate commit messages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            RANGE="${BASE_SHA}..${HEAD_SHA}"
+          elif [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
+            RANGE="$PUSH_SHA"
+          else
+            RANGE="${BEFORE_SHA}..${PUSH_SHA}"
+          fi
+
+          commits=$(git rev-list "$RANGE")
+
+          if [[ -z "$commits" ]]; then
+            echo "No commits to validate."
+            exit 0
+          fi
+
+          while IFS= read -r commit; do
+            message=$(git log -1 --format=%s "$commit")
+
+            echo "Checking: $message"
+
+            scripts/validate-commit-message.sh "$message" || exit 1
+          done <<< "$commits"
+
+          echo "All commit messages passed validation."
