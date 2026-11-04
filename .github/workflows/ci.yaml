@@ -1,4 +1,26 @@
 
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  commit-message-validation:
+    name: Validate commit messages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Validate commit messages
         shell: bash
         env:
@@ -24,13 +46,14 @@
           fi
 
           while IFS= read -r commit; do
-            if [[ "$(git rev-list --parents -n 1 "$commit" | wc -w | tr -d ' ')" -eq 1 ]]; then
+            parent_count=$(git rev-list --parents -n 1 "$commit" | wc -w | tr -d ' ')
+
+            if [[ "$parent_count" -eq 1 ]]; then
               echo "Skipping root commit: $(git log -1 --format=%s "$commit")"
               continue
             fi
 
             message=$(git log -1 --format=%s "$commit")
-
             echo "Checking: $message"
 
             scripts/validate-commit-message.sh "$message" || exit 1
