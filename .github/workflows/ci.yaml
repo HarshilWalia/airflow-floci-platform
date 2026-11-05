@@ -34,11 +34,13 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PUSH_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             RANGE="${BASE_SHA}..${HEAD_SHA}"
           elif [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
-            RANGE="$PUSH_SHA"
+            BASE_SHA=$(git merge-base origin/main "$PUSH_SHA")
+            RANGE="${BASE_SHA}..${PUSH_SHA}"
           else
             RANGE="${BEFORE_SHA}..${PUSH_SHA}"
           fi
